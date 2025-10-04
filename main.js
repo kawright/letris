@@ -495,11 +495,11 @@ async function next_frame() {
         game_tile_map[LAYOUT_GRID_HEIGHT - column_height - 2][game_free_tiles_column] = game_free_tiles[1];
         game_tile_map[LAYOUT_GRID_HEIGHT - column_height - 3][game_free_tiles_column] = game_free_tiles[0];
         let found = false;
-        for (let i = 1; i <= LAYOUT_FREE_TILE_COUNT; i++) {
+        for (let i = LAYOUT_GRID_HEIGHT - 1; i >= 0; i--) {
             let row_string = "";
             let substring = "";
             for (let j = 0; j < LAYOUT_GRID_WIDTH; j++) {
-                row_string += game_tile_map[LAYOUT_GRID_HEIGHT - column_height - i][j];
+                row_string += game_tile_map[i][j];
             }
             for (let substring_start = 0; substring_start < LAYOUT_GRID_WIDTH; substring_start++) {
                 for (let substring_length = LAYOUT_GRID_WIDTH; substring_length >= RULE_MIN_WORD_LENGTH;
@@ -526,7 +526,7 @@ async function next_frame() {
                             for (let current_tile_column = substring_start; current_tile_column < substring_end;
                                     current_tile_column++) {
                                 draw_tile(current_tile_column * layout_grid_size, 
-                                    (LAYOUT_GRID_HEIGHT - column_height - i) * layout_grid_size, 
+                                    i * layout_grid_size, 
                                     substring.substring(current_tile_column - substring_start, 
                                         current_tile_column - substring_start + 1),
                                     flash_body_color,
@@ -538,7 +538,7 @@ async function next_frame() {
                         // Update tilemap
                         for (let current_tile_column = substring_start; current_tile_column < substring_end;
                                 current_tile_column++) {
-                            for (let current_tile_row = LAYOUT_GRID_HEIGHT - column_height - i; current_tile_row > 0;
+                            for (let current_tile_row = i; current_tile_row > 0;
                                     current_tile_row--) {
 
                                 // Shift tiles down:
@@ -562,7 +562,7 @@ async function next_frame() {
             // If a word was found, scan from the beginning.
             if (found) {
                 found = false;
-                i = 1;
+                i = LAYOUT_GRID_HEIGHT - 1;
             } 
         }
         reset_free_tiles();
