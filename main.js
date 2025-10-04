@@ -502,8 +502,8 @@ async function next_frame() {
                 row_string += game_tile_map[LAYOUT_GRID_HEIGHT - column_height - i][j];
             }
             for (let substring_start = 0; substring_start < LAYOUT_GRID_WIDTH; substring_start++) {
-                for (let substring_length = RULE_MIN_WORD_LENGTH; substring_length < LAYOUT_GRID_WIDTH;
-                        substring_length++) {
+                for (let substring_length = LAYOUT_GRID_WIDTH; substring_length >= RULE_MIN_WORD_LENGTH;
+                        substring_length--) {
                     const substring_end = substring_start + substring_length;
                     if (substring_end  > LAYOUT_GRID_WIDTH) {
                         continue;
