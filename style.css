@@ -1,0 +1,7 @@
+/* Copyright (C) 2025 - Kristoffer A. Wright - All Rights Reserved */
+
+div { 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
