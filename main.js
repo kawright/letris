@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.3";
+const VERSION_NUMBER = "0.1.4";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -23,6 +23,12 @@ const LAYOUT_SPLASH_VERSION_FONT_RATIO = 0.3;
 const LAYOUT_SPLASH_TITLE_Y_RATIO = 0.2;
 const LAYOUT_SPLASH_BODY_Y_RATIO = 0.7;
 const LAYOUT_SPLASH_VERSION_Y_RATIO = 0.95;
+const LAYOUT_GAME_OVER_LINE_1_Y_RATIO = 0.2;
+const LAYOUT_GAME_OVER_LINE_2_Y_RATIO = 0.3;
+const LAYOUT_GAME_OVER_LINE_3_Y_RATIO = 0.5;
+const LAYOUT_GAME_OVER_LINE_4_Y_RATIO = 0.8;
+const LAYOUT_GAME_OVER_SMALL_FONT_RATIO = 0.6;
+const LAYOUT_GAME_OVER_LARGE_FONT_RATIO = 2;
 const LAYOUT_UP_DOWN_BUTTON_HEIGHT_RATIO = 0.25;
 const LAYOUT_LEFT_RIGHT_BUTTON_WIDTH_RATIO = 0.5;
 const LAYOUT_FREE_TILE_COUNT = 3;
@@ -83,6 +89,8 @@ let layout_tile_font_size = 0;
 let layout_splash_title_font_size = 0;
 let layout_splash_body_font_size = 0;
 let layout_splash_version_font_size = 0;
+let layout_game_over_small_font_size = 0;
+let layout_game_over_large_font_size = 0;
 let layout_up_button_zone_start = 0;
 let layout_up_button_zone_end = 0;
 let layout_down_button_zone_start = 0;
@@ -145,6 +153,8 @@ function initialize_layout() {
     layout_splash_title_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_TITLE_FONT_RATIO);
     layout_splash_body_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_BODY_FONT_RATIO);
     layout_splash_version_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_VERSION_FONT_RATIO);
+    layout_game_over_small_font_size = Math.floor(layout_grid_size * LAYOUT_GAME_OVER_SMALL_FONT_RATIO);
+    layout_game_over_large_font_size = Math.floor(layout_grid_size * LAYOUT_GAME_OVER_LARGE_FONT_RATIO);
 
     layout_left_button_zone_start = 0;
     layout_left_button_zone_end = Math.floor(layout_screen_width * LAYOUT_LEFT_RIGHT_BUTTON_WIDTH_RATIO);
@@ -170,6 +180,8 @@ function initialize_layout() {
     console.log(`Tile Font Size: ${layout_tile_font_size}`);
     console.log(`Splash Screen Title Font Size: ${layout_splash_title_font_size}`);
     console.log(`Splash Screen Body Font Size: ${layout_splash_body_font_size}`);
+    console.log(`Game Over Screen Small Font Size: ${layout_game_over_small_font_size});
+    console.log(`Game Over Screen Large Font Size: ${layout_game_over_large_font_size});
     console.log(`Left Button Touch Zone Start: ${layout_left_button_zone_start}`);
     console.log(`Left Button Touch Zone End: ${layout_left_button_zone_end}`);
     console.log(`Right Button Touch Zone Start: ${layout_right_button_zone_start}`);
@@ -513,7 +525,7 @@ async function next_frame() {
             //> ***** DEBUG END *****            
 
             game_background = COLOR_GAME_OVER;
-            draw_rectangle(0, 0, layout_screen_width, layout_screen_height);
+            clear_screen();
             draw_tile_map();
             draw_tile(game_free_tiles_position_x, game_free_tiles_position_y, game_free_tiles[0], COLOR_TILE_BODY, 
                 COLOR_TILE_BORDER);
@@ -521,6 +533,21 @@ async function next_frame() {
                 COLOR_TILE_BODY, COLOR_TILE_BORDER);
             draw_tile(game_free_tiles_position_x, game_free_tiles_position_y + (2 * layout_grid_size),
                 game_free_tiles[2], COLOR_TILE_BODY, COLOR_TILE_BORDER);
+            await sleep(3);
+
+            game_background = COLOR_BACKGROUND;
+            clear_screen();
+            set_draw_color(COLOR_SPLASH_TEXT);
+            set_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
+            draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_1_Y_RATIO, "you cleared");
+            set_draw_font(layout_game_over_large_font_size, FONT_TYPEFACE_MAIN);
+            draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_2_Y_RATIO, `${game_score}`);
+            set_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
+            draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_3_Y_RATIO, "blocks");
+            draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_4_Y_RATIO, "try again?");
+            initialize_game_state();
+            game_stage = STAGE_ENUM_SPLASH;
+
             return;             // GAME OVER! 
         }
 
@@ -545,7 +572,8 @@ async function next_frame() {
                     }
                     substring = row_string.substring(substring_start, substring_end);
                     if (WORDS.words.indexOf(substring) != -1) {
-                        found = true;                        
+                        found = true;
+                        game_score += substring.length;
 
                         // Play flashing animation
                         let flash_body_color = COLOR_FLASH_A;
