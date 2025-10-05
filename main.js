@@ -2,6 +2,10 @@
 
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
+
+const VERSION_NUMBER = "0.1.3";
+
+
 /* ----- DOM ELEMENT IDs ----- */
 
 const DOM_CANVAS_ID = "main-canvas";
@@ -13,6 +17,12 @@ const LAYOUT_GRID_WIDTH = 6;
 const LAYOUT_GRID_HEIGHT = 12;
 const LAYOUT_TILE_BORDER_RATIO = 0.1;
 const LAYOUT_TILE_FONT_RATIO = 0.5;
+const LAYOUT_SPLASH_TITLE_FONT_RATIO = 2;
+const LAYOUT_SPLASH_BODY_FONT_RATIO = 0.6;
+const LAYOUT_SPLASH_VERSION_FONT_RATIO = 0.3;
+const LAYOUT_SPLASH_TITLE_Y_RATIO = 0.2;
+const LAYOUT_SPLASH_BODY_Y_RATIO = 0.7;
+const LAYOUT_SPLASH_VERSION_Y_RATIO = 0.95;
 const LAYOUT_UP_DOWN_BUTTON_HEIGHT_RATIO = 0.25;
 const LAYOUT_LEFT_RIGHT_BUTTON_WIDTH_RATIO = 0.5;
 const LAYOUT_FREE_TILE_COUNT = 3;
@@ -30,9 +40,10 @@ const COLOR_BACKGROUND = "#483D8B";                     // Slate Blue
 const COLOR_BORDER = "#6A5ACD";                         // Dark Slate Blue
 const COLOR_TILE_BODY = "#FFEFD5";                      // Dark Orange
 const COLOR_TILE_BORDER = "#FF8C00";                    // Papaya Whip
-const COLOR_FLASH_A = "#000000"                         // Black
-const COLOR_FLASH_B = "#DCDCDC"                         // Gainsboro
-const COLOR_GAME_OVER = "#DC143C"                       // Crimson
+const COLOR_FLASH_A = "#000000";                        // Black
+const COLOR_FLASH_B = "#DCDCDC";                        // Gainsboro
+const COLOR_GAME_OVER = "#DC143C";                      // Crimson
+const COLOR_SPLASH_TEXT = "#B690FA";                    
 
 /* ----- FONTS ----- */
 
@@ -46,6 +57,12 @@ const RULE_MIN_WORD_LENGTH = 3;
 
 const ANIMATION_FLASH_COUNT = 12;
 const ANIMATION_FLASH_LENGTH = 0.2;                     // Seconds
+
+/* ----- EXECUTION STAGE ENUM ----- */
+
+const STAGE_ENUM_SPLASH = 0;
+const STAGE_ENUM_PLAYING = 1;
+const STAGE_ENUM_GAME_OVER = 2;
 
 /* ----- DOM ELEMENTS ----- */
 
@@ -63,6 +80,9 @@ let layout_screen_width = 0;
 let layout_screen_height = 0;
 let layout_tile_border_size = 0;
 let layout_tile_font_size = 0;
+let layout_splash_title_font_size = 0;
+let layout_splash_body_font_size = 0;
+let layout_splash_version_font_size = 0;
 let layout_up_button_zone_start = 0;
 let layout_up_button_zone_end = 0;
 let layout_down_button_zone_start = 0;
@@ -84,6 +104,7 @@ let game_last_touch_x = 0;
 let game_last_touch_y = 0;
 let game_drop_speed = 0;
 let game_background = "";
+let game_stage = 0;
 
 /* ----- INPUT STATE ----- */
 
@@ -121,6 +142,9 @@ function initialize_layout() {
    
     layout_tile_border_size = Math.floor(layout_grid_size * LAYOUT_TILE_BORDER_RATIO);
     layout_tile_font_size = Math.floor(layout_grid_size * LAYOUT_TILE_FONT_RATIO);
+    layout_splash_title_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_TITLE_FONT_RATIO);
+    layout_splash_body_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_BODY_FONT_RATIO);
+    layout_splash_version_font_size = Math.floor(layout_grid_size * LAYOUT_SPLASH_VERSION_FONT_RATIO);
 
     layout_left_button_zone_start = 0;
     layout_left_button_zone_end = Math.floor(layout_screen_width * LAYOUT_LEFT_RIGHT_BUTTON_WIDTH_RATIO);
@@ -136,7 +160,7 @@ function initialize_layout() {
     element_canvas.style.background = COLOR_BACKGROUND;
     element_div.style.background = COLOR_BORDER; 
 
-    
+    /*
     //< ***** DEBUG START *****
     console.log(`----- START LAYOUT INFO -----`);
     console.log(`Screen Width: ${layout_screen_width}`);
@@ -144,6 +168,8 @@ function initialize_layout() {
     console.log(`Grid Size: ${layout_grid_size}`);
     console.log(`Tile Border Size: ${layout_tile_border_size}`);
     console.log(`Tile Font Size: ${layout_tile_font_size}`);
+    console.log(`Splash Screen Title Font Size: ${layout_splash_title_font_size}`);
+    console.log(`Splash Screen Body Font Size: ${layout_splash_body_font_size}`);
     console.log(`Left Button Touch Zone Start: ${layout_left_button_zone_start}`);
     console.log(`Left Button Touch Zone End: ${layout_left_button_zone_end}`);
     console.log(`Right Button Touch Zone Start: ${layout_right_button_zone_start}`);
@@ -153,7 +179,7 @@ function initialize_layout() {
     console.log(`Down Button Touch Zone Start: ${layout_down_button_zone_start}`);
     console.log(`----- END LAYOUT INFO -----`);
     //> ***** DEBUG END *****
-    
+    */
 
 }
 
@@ -182,6 +208,7 @@ function initialize_game_state() {
     game_drop_speed = BASE_DROP_SPEED;
     game_sleeping = false;
     game_background = COLOR_BACKGROUND;
+    game_stage = STAGE_ENUM_SPLASH; 
 }
 
 function initialize_clock() {
@@ -422,6 +449,14 @@ function on_touch_start(event) {
         return;
     }   
 
+    if (game_stage == STAGE_ENUM_SPLASH) {
+        game_stage = STAGE_ENUM_PLAYING;
+        clear_screen();
+        reset_free_tiles();
+        next_frame();
+        return;
+    }
+
     input_is_pressed = true;
  
     if ((touch.pageY > layout_up_button_zone_start) && (touch.pageY <= layout_up_button_zone_end)) {
@@ -604,8 +639,14 @@ function main() {
     initialize_input();
     initialize_clock();
 
-    reset_free_tiles();
-    next_frame(); 
+    clear_screen();
+    set_draw_color(COLOR_SPLASH_TEXT);
+    set_draw_font(layout_splash_title_font_size, FONT_TYPEFACE_MAIN);
+    draw_text_center(layout_screen_height * LAYOUT_SPLASH_TITLE_Y_RATIO, "letris");
+    set_draw_font(layout_splash_body_font_size, FONT_TYPEFACE_MAIN);
+    draw_text_center(layout_screen_height * LAYOUT_SPLASH_BODY_Y_RATIO, "tap to start");
+    set_draw_font(layout_splash_version_font_size, FONT_TYPEFACE_MAIN);
+    draw_text_center(layout_screen_height * LAYOUT_SPLASH_VERSION_Y_RATIO, `ver. ${VERSION_NUMBER}`);
 }
 
 window.addEventListener("load", main);
