@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.11";
+const VERSION_NUMBER = "0.1.12";
 
 
 /* ----- DOM ELEMENT IDs ----- */
