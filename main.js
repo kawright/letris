@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.5";
+const VERSION_NUMBER = "0.1.6";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -49,7 +49,7 @@ const COLOR_TILE_BORDER = "#FF8C00";                    // Papaya Whip
 const COLOR_FLASH_A = "#000000";                        // Black
 const COLOR_FLASH_B = "#DCDCDC";                        // Gainsboro
 const COLOR_GAME_OVER = "#DC143C";                      // Crimson
-const COLOR_SPLASH_TEXT = "#B690FA";                    
+const COLOR_SPLASH_TEXT = "#B690FA";                    // CUSTOM
 
 /* ----- FONTS ----- */
 
@@ -225,6 +225,12 @@ function initialize_game_state() {
 
 function initialize_clock() {
     clock_last_tick = Date.now();
+}
+
+/* ----- GEOMETRY ROUTINES ----- */
+
+function pixel_to_grid(coordinate) {
+    return Math.floor(coordinate / layout_grid_size);
 }
 
 /* ----- DRAW FUNCTIONS ----- */
@@ -476,12 +482,14 @@ function on_touch_start(event) {
     } else if ((touch.pageY > layout_down_button_zone_start) && (touch.pageY <= layout_down_button_zone_end)) {
         game_drop_speed = FAST_DROP_SPEED;
     } else if ((touch.pageX > layout_left_button_zone_start) && (touch.pageX <= layout_left_button_zone_end)) {
-        if (game_free_tiles_column > 0) {
+        if (game_free_tiles_column > 0 && game_tile_map[pixel_to_grid(game_free_tiles_position_y + 
+                (layout_grid_size * LAYOUT_FREE_TILE_COUNT))][game_free_tiles_column - 1] == " ")  {
             game_free_tiles_column--;
             game_free_tiles_position_x -= layout_grid_size;
         }
     } else if ((touch.pageX > layout_right_button_zone_start) && (touch.pageX <= layout_right_button_zone_end)) {
-        if (game_free_tiles_column < LAYOUT_GRID_WIDTH - 1) {
+        if (game_free_tiles_column < LAYOUT_GRID_WIDTH - 1 && game_tile_map[pixel_to_grid(game_free_tiles_position_y +
+                (layout_grid_size * LAYOUT_FREE_TILE_COUNT))][game_free_tiles_column + 1] == " ") {
             game_free_tiles_column++;
             game_free_tiles_position_x += layout_grid_size;
         }
@@ -677,4 +685,4 @@ function main() {
     draw_text_center(layout_screen_height * LAYOUT_SPLASH_VERSION_Y_RATIO, `ver. ${VERSION_NUMBER}`);
 }
 
-window.addEventListener("load", main);
+indow.addEventListener("load", main);
