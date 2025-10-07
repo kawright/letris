@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.10";
+const VERSION_NUMBER = "0.1.11";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -39,7 +39,7 @@ const LAYOUT_DEBUG_FONT_SIZE = 16;
 const BASE_DROP_SPEED = 1;
 const FAST_DROP_SPEED = 4;
 const FRAMES_PER_SECOND = 20;
-const TICKS_PER_FRAME = Math.floor(1000 / FRAMES_PER_SECOND); 
+const TICKS_PER_FRAME = Math.floor(1000 / FRAMES_PER_SECOND);       // TODO DEPRECATED
 const CLOCK_MINIMUM_FRAME_DURATION = 1;
 
 /* ----- COLORS ----- */
@@ -578,7 +578,7 @@ async function next_frame() {
             game_background = COLOR_BACKGROUND;
             clear_screen();
             set_draw_color(COLOR_SPLASH_TEXT);
-            et_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
+            set_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
             draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_1_Y_RATIO, "you cleared");
             set_draw_font(layout_game_over_large_font_size, FONT_TYPEFACE_MAIN);
             draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_2_Y_RATIO, `${game_score}`);
