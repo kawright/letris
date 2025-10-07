@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.9";
+const VERSION_NUMBER = "0.1.10";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -479,6 +479,7 @@ function on_touch_start(event) {
         game_stage = STAGE_ENUM_PLAYING;
         clear_screen();
         reset_free_tiles();
+        initialize_clock();
         clock_frame_count = 1;
         setTimeout(log_fps, 1000);
         next_frame();
@@ -704,7 +705,6 @@ function main() {
     initialize_layout();
     initialize_game_state();
     initialize_input();
-    initialize_clock();
 
     clear_screen();
     set_draw_color(COLOR_SPLASH_TEXT);
