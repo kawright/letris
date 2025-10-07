@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.7";
+const VERSION_NUMBER = "0.1.8";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -32,6 +32,7 @@ const LAYOUT_GAME_OVER_LARGE_FONT_RATIO = 2;
 const LAYOUT_UP_DOWN_BUTTON_HEIGHT_RATIO = 0.25;
 const LAYOUT_LEFT_RIGHT_BUTTON_WIDTH_RATIO = 0.5;
 const LAYOUT_FREE_TILE_COUNT = 3;
+const LAYOUT_DEBUG_FONT_SIZE = 16;
 
 /* ----- CLOCK AND PACING ----- */
 
@@ -39,6 +40,7 @@ const BASE_DROP_SPEED = 1;
 const FAST_DROP_SPEED = 4;
 const FRAMES_PER_SECOND = 20;
 const TICKS_PER_FRAME = Math.floor(1000 / FRAMES_PER_SECOND); 
+const CLOCK_MINIMUM_FRAME_DURATION = 1;
 
 /* ----- COLORS ----- */
 
@@ -50,6 +52,7 @@ const COLOR_FLASH_A = "#000000";                        // Black
 const COLOR_FLASH_B = "#DCDCDC";                        // Gainsboro
 const COLOR_GAME_OVER = "#DC143C";                      // Crimson
 const COLOR_SPLASH_TEXT = "#B690FA";                    // CUSTOM
+const COLOR_DEBUG_TEXT = "#FFFFFF";                     // White
 
 /* ----- FONTS ----- */
 
@@ -68,7 +71,9 @@ const ANIMATION_FLASH_LENGTH = 0.2;                     // Seconds
 
 const STAGE_ENUM_SPLASH = 0;
 const STAGE_ENUM_PLAYING = 1;
-const STAGE_ENUM_GAME_OVER = 2;
+const STAGE_ENUM_GAME_OVER = 2;                         // TODO DEPRECATED
+
+
 
 /* ----- DOM ELEMENTS ----- */
 
@@ -121,6 +126,9 @@ let input_is_pressed = false;
 /* ----- CLOCK STATE ----- */
 
 let clock_last_tick = 0;
+let clock_frame_count = 0;
+let clock_second_count = 0;
+let clock_live_fps = 0;
 
 /* ----- INITIALIZATION FUNCTIONS (EXCEPT INPUT INIT) ----- */
 
@@ -471,6 +479,8 @@ function on_touch_start(event) {
         game_stage = STAGE_ENUM_PLAYING;
         clear_screen();
         reset_free_tiles();
+        clock_frame_count = 1;
+        setTimeout(log_fps, 1000);
         next_frame();
         return;
     }
@@ -510,10 +520,24 @@ function initialize_input() {
 /* ----- CLOCK MANAGEMENT ----- */
 
 function sleep(seconds) {
+
     //< ***** DEBUG START *****
     console.log(`Sleeping: t:${seconds}`);
     //> ***** DEBUG END *****
+
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}
+
+async function log_fps() {
+
+    //< ***** DEBUG START *****
+    
+    clock_second_count++;
+    clock_live_fps = clock_frame_count / clock_second_count;
+    setTimeout(log_fps, 1000);   
+ 
+    //> ***** DEBUG END *****
+
 }
 
 /* ----- MAIN FUNCTION AND DRIVER CODE ----- */
@@ -521,11 +545,18 @@ function sleep(seconds) {
 async function next_frame() {
 
     // Movement and collision
-    game_free_tiles_position_y += (game_drop_speed * layout_grid_size / TICKS_PER_FRAME); 
+    const delta_time = Date.now() - clock_last_tick;
+    const delta_position = (game_drop_speed * layout_grid_size * delta_time) / 1000;
+    game_free_tiles_position_y += delta_position; 
     const column_height = get_column_height(game_free_tiles_column);
     if (
             (game_free_tiles_position_y + (LAYOUT_FREE_TILE_COUNT * layout_grid_size)) >= 
             (layout_screen_height - (column_height * layout_grid_size))) {
+        
+        // Collision ejection
+        game_free_tiles_position_y = layout_screen_height - (column_height * layout_grid_size) - 
+            (LAYOUT_FREE_TILE_COUNT * layout_grid_size);
+
         if (column_height > (LAYOUT_GRID_HEIGHT - LAYOUT_FREE_TILE_COUNT)) {
 
             //< ***** DEBUG START *****
@@ -546,7 +577,7 @@ async function next_frame() {
             game_background = COLOR_BACKGROUND;
             clear_screen();
             set_draw_color(COLOR_SPLASH_TEXT);
-            set_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
+            et_draw_font(layout_game_over_small_font_size, FONT_TYPEFACE_MAIN);
             draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_1_Y_RATIO, "you cleared");
             set_draw_font(layout_game_over_large_font_size, FONT_TYPEFACE_MAIN);
             draw_text_center(layout_screen_height * LAYOUT_GAME_OVER_LINE_2_Y_RATIO, `${game_score}`);
@@ -648,17 +679,17 @@ async function next_frame() {
     draw_tile(game_free_tiles_position_x, game_free_tiles_position_y + (2 * layout_grid_size),
         game_free_tiles[2], COLOR_TILE_BODY, COLOR_TILE_BORDER);
 
-    let next_frame_tick;
-    let current_tick = Date.now();
-    for (
-            next_frame_tick = clock_last_tick + TICKS_PER_FRAME; 
-            next_frame_tick < current_tick;
-            next_frame_tick += TICKS_PER_FRAME) {
-        current_tick = Date.now();
-    }
-    clock_last_tick = current_tick;
-    setTimeout(next_frame, next_frame_tick - current_tick);
+    //< ***** START DEBUG *****
 
+    set_draw_color(COLOR_DEBUG_TEXT);
+    set_draw_font(LAYOUT_DEBUG_FONT_SIZE, FONT_TYPEFACE_MAIN);
+    draw_text_center(32, `FPS: ${clock_live_fps}`); 
+
+    //> ***** END DEBUG *****
+
+    clock_frame_count++;
+    clock_last_tick = Date.now();
+    setTimeout(next_frame, CLOCK_MINIMUM_FRAME_DURATION);
 
     /*
     //< ***** DEBUG START *****
