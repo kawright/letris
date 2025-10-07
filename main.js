@@ -3,7 +3,7 @@
 /* LETRIS - A tile dropping game where you spell words to clear the board. */
 
 
-const VERSION_NUMBER = "0.1.6";
+const VERSION_NUMBER = "0.1.7";
 
 
 /* ----- DOM ELEMENT IDs ----- */
@@ -685,4 +685,4 @@ function main() {
     draw_text_center(layout_screen_height * LAYOUT_SPLASH_VERSION_Y_RATIO, `ver. ${VERSION_NUMBER}`);
 }
 
-indow.addEventListener("load", main);
+window.addEventListener("load", main);
